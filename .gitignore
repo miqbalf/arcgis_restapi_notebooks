@@ -1,6 +1,66 @@
 *_local.json
 
 **/__pycache__/**
-**/.ipynb_checkpoints/**
+.ipynb_checkpoints/
 */__pycache__/*
 
+**/.ipynb_checkpoints/
+
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.so
+*.dll
+
+# Virtual Environment
+venv/
+.venv/
+env/
+.env/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+.pycharm/
+.DS_Store
+
+# Log Files
+*.log
+
+# Dependency Directories and Files
+/venv/
+/env/
+/lib/
+/lib64/
+/site-packages/
+.eggs/
+
+# Build and Distribution
+build/
+dist/
+
+# IDE Configuration Files
+.project
+.pydevproject
+
+# Database Files
+*.sqlite
+
+# User-specific Configuration Files
+.bash_history
+.bashrc
+.bash_profile
+.zshrc
+
+# Temporary Files and Directories
+.tmp/
+.temp/
+tmp/
+temp/
+
+# IDE Workspace Files
+*.code-workspace
+*.idea/workspace.xml
+*.iml
