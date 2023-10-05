@@ -29,6 +29,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         yield scrapy.Request(page_url, callback=self.parse_objectid, meta={'layer_name': layer_link_name})
 
     def parse_objectid(self, response):
+        # get xpath name objectid_name for queries
         objectid_name = response.xpath('/html/body/div/ul[4]/li[1]/text()').get().strip().replace('\r\n', '')
         # print(f'Title: {objectid_name}')
         layer_name = response.meta.get('layer_name')
@@ -40,13 +41,18 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
     def parse_query(self, response):
         oid_name = response.meta.get('oid_name')
         layer_name = response.meta.get('layer_name')
+        with open('./input_json/bbox.json', 'r') as json_file:
+            dict_data = json.load(json_file)
+
+        str_bbox = str(dict_data)
+
         params = {
                 "where": f"{oid_name} >= -1",
                 "text": "",
                 "objectIds": "",
                 "time": "",
                 "timeRelation": "esriTimeRelationOverlaps",
-                "geometry": "",
+                "geometry": str_bbox,
                 "geometryType": "esriGeometryEnvelope",
                 "inSR": 4326,
                 "spatialRel": "esriSpatialRelIntersects",
