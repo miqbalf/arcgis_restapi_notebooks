@@ -9,3 +9,7 @@ def create_folder(workspace, folder_name):
         print(f"Folder '{folder_name}' created in workspace: {workspace}")
     else:
         print(f"Folder '{folder_name}' already exists in workspace: {workspace}")
+    
+    return folder_path
+
+    
