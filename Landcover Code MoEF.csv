@@ -1,0 +1,24 @@
+kode,keterangan,Description,Description2
+2001,Hutan lahan kering primer,Primary Dryland Forest ,Forested land
+2002,Hutan lahan kering sekunder / bekas tebangan,Secondary Dryland Forest ,Forested land
+2005,Hutan rawa primer,Primary Swamp Forest ,Forested land
+20051,Hutan rawa sekunder / bekas tebangan,Secondary Swamp Forest ,Forested land
+2004,Hutan mangrove primer,Primary Mangrove Forest ,Forested land
+20041,Hutan mangrove sekunder / bekas tebangan,Secondary Mangrove Forest ,Forested land
+2006,Hutan tanaman,Plantation forest ,
+2010,Perkebunan / Kebun,Estate crop ,
+2007,Semak belukar,Dry shrub ,Degraded land
+20071,Semak belukar rawa,Wet shrub ,Degraded land
+3000,Savanna / Padang rumput,Savanna and Grasses ,
+20091,Pertanian lahan kering,Pure dry agriculture ,
+20092,Pertanian lahan kering  campur semak / kebun campur,Mixed dry agriculture ,
+20093,Sawah,Paddy Field ,
+20094,Tambak,Fish pond/aquaculture ,
+2012,Permukiman / Lahan terbangun,Settlement areas ,
+20122,Transmigrasi,Transmigration areas ,
+2014,Lahan terbuka,Bare ground ,Degraded land
+20141,Pertambangan,Mining areas ,
+5001,Tubuh air,Open water ,
+50011,Rawa,Open swamp ,
+2500,Awan ,Clouds and no-data ,
+20121,Bandara / Pelabuhan,Port and harbor ,
