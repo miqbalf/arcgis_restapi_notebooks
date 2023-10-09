@@ -1,5 +1,7 @@
 *_local.json
 
+output_shp/*
+
 **/__pycache__/**
 .ipynb_checkpoints/
 */__pycache__/*
