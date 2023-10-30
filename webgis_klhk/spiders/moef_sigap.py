@@ -4,10 +4,10 @@ import json
 import os
 
 
-class WebgisKlhkSpiderSpider(scrapy.Spider):
-    name = "webgis_klhk_spider"
+class moefSigap(scrapy.Spider):
+    name = "moef_sigap"
     allowed_domains = ["geoportal.menlhk.go.id"]
-    start_urls = ["https://geoportal.menlhk.go.id/server/rest/services/Time_Series"]
+    start_urls = ["https://geoportal.menlhk.go.id/server/rest/services/SIGAP_Interaktif"]
 
     def parse(self, response):
         layer_links = response.css('li')

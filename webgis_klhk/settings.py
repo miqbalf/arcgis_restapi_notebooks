@@ -13,11 +13,17 @@ SPIDER_MODULES = ["webgis_klhk.spiders"]
 NEWSPIDER_MODULE = "webgis_klhk.spiders"
 
 
+ITEM_PIPELINES = {
+    'webgis_klhk.pipelines.JsonExportPipeline': 1 # Adjust the priority as needed
+}
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "webgis_klhk (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
+
+DOWNLOAD_FAIL_ON_DATALOSS = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32

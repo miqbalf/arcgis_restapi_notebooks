@@ -1,9 +1,17 @@
 *_local.json
 
+index_local/
+
+output_shp/
 output_shp/*
 ./output_shp/*
 
 */output_shp/*
+
+output_shp_local/
+output_json_local/
+output_json_pl2022/
+
 
 **/__pycache__/**
 .ipynb_checkpoints/

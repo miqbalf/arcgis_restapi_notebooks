@@ -10,3 +10,9 @@ class WebgisKlhkItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
+
+class moefSigapKLHKItem(scrapy.Item):
+   data = scrapy.Field()
+   output_dir = scrapy.Field()
+   layer_name = scrapy.Field()
+   
