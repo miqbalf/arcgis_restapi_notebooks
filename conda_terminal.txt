@@ -1,0 +1,10 @@
+conda create --name cloned_env --clone original_env
+
+after that:
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy ByPass -NoExit -Command & 'C:\\Program Files\\ArcGIS\\Pro\\bin\\Python\\condabin\\conda-hook.ps1' ; conda activate C:\\Users\\q_bal\\AppData\\Local\\ESRI\\conda\\envs\\mrv"
+
+conda install qgis --channel conda-forge
+
+mklink /D "C:\Program Files\ArcGIS\Pro\bin\Python\envs\qgis_env" "C:\Users\q_bal\AppData\Local\ESRI\conda\envs\qgis_env"
+
+mklink /D "C:\Program Files\ArcGIS\Pro\bin\Python\envs\mrv" "C:\Users\q_bal\AppData\Local\ESRI\conda\envs\mrv"
