@@ -15,4 +15,9 @@ class moefSigapKLHKItem(scrapy.Item):
    data = scrapy.Field()
    output_dir = scrapy.Field()
    layer_name = scrapy.Field()
+
+class moefPL_TS(scrapy.Item):
+   data = scrapy.Field()
+   output_dir = scrapy.Field()
+   layer_name = scrapy.Field()
    

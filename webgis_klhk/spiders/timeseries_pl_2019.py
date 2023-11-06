@@ -3,19 +3,20 @@ from urllib.parse import urlencode
 import json
 import os
 
-from webgis_klhk.items import moefSigapKLHKItem
+from webgis_klhk.items import moefPL_TS
 
-class moefSigapKLHK(scrapy.Spider):
-    name = "moef_sigap_kawasan_hutan"
+class KlhkSpider2019(scrapy.Spider):
+    name = "timeseries_pl_2019"
     allowed_domains = ["geoportal.menlhk.go.id"]
-    start_urls = ["https://geoportal.menlhk.go.id/server/rest/services/SIGAP_Interaktif/NSDH_Kawasan_Hutan/MapServer/0"]
+    layer_name_url = "/server/rest/services/Time_Series/PL_2019/MapServer/0"
+    start_urls = [f"https://geoportal.menlhk.go.id{layer_name_url}"]
 
     def parse(self, response):
         # get xpath name objectid_name for queries
         objectid_name = response.xpath('/html/body/div/ul[4]/li[1]/text()').get().strip().replace('\r\n', '')
         # print(f'Title: {objectid_name}')
         #layer_name = response.meta.get('layer_name')
-        layer_link_name = "/server/rest/services/SIGAP_Interaktif/NSDH_Kawasan_Hutan/MapServer/0"
+        layer_link_name = self.layer_name_url
         # yield {layer_name: objectid_name}
         page_url = 'https://geoportal.menlhk.go.id' + layer_link_name + '/query'
         
@@ -83,7 +84,7 @@ class moefSigapKLHK(scrapy.Spider):
         layer_name_parts = layer_link_name.split('/')
         layer_name = layer_name_parts[-3]
 
-        output_dir = f'./output_json_{layer_name}'  # Define your output directory
+        output_dir = f'./output_json_local/Timeseries_collection/output_json_{layer_name}'  # Define your output directory
         os.makedirs(output_dir, exist_ok=True)
 
         data = json.loads(response.text)
@@ -104,12 +105,12 @@ class moefSigapKLHK(scrapy.Spider):
         layer_name = response.meta.get('layer_name')
         data_json = json.loads(response.text)
 
-        item = moefSigapKLHKItem()
+        item = moefPL_TS()
         
         item['data'] = data_json
         item['output_dir'] = output_dir
         item['layer_name'] = layer_name
-        print(f'sending to item : {item["output_dir"]}')
-        print(f'sending to item : {item["layer_name"]}')
+        #print(f'sending to item : {item["output_dir"]}')
+        #print(f'sending to item : {item["layer_name"]}')
 
         yield item

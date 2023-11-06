@@ -42,7 +42,7 @@ class JsonExportPipeline:
     def process_item(self, item, spider):
         # Collect the JSON data and metadata from the item
         self.items.append(item['data'])
-        print('---\n appending data to items \n --------------')
+        #print('---\n appending data to items \n --------------')
 
         self.output_dirs.append(item['output_dir'])
         self.layer_names.append(item['layer_name'])
