@@ -40,20 +40,17 @@ class JsonExportPipeline:
         self.data = []
 
         # self.items = { self.layer_names:  self.data }
-        self.items = {}
+        self.layer_names = []
         self.index_dir = {}
+
         
 
     def process_item(self, item, spider):
-        # # Collect the JSON data and metadata from the item
-        # self.items.append(item['data'])
-        # #print('---\n appending data to items \n --------------')
+        
+        self.data.append(item['data'])
 
-        # #self.output_dirs.append(item['output_dir'])
-        # self.layer_names.append(item['layer_name'])
-
-        # get pair unique of layer_name : [list of the data]
-        self.items[item['layer_name']] = self.data.append(item['data'])
+        # generate a repeating layer_names every index (later we need to identify the actual unique layer_name)
+        self.layer_names.append(item['layer_name'])
 
         # get pair unique only for layer_name : output_dir path (string)
         self.index_dir[item['layer_name']] = item['output_dir']
@@ -61,17 +58,20 @@ class JsonExportPipeline:
         return item
 
     def close_spider(self, spider):
-        # Get the output directory and layer name from the first item (assuming all items have the same metadata)
-        #output_dir = self.output_dirs[0]
-        #layer_name = self.layer_names[0]
 
-        # Ensure that the output directory exists
-        # os.makedirs(output_dir, exist_ok=True)
+        # init to reconstruct the dictionary, {layer_name1:[data1]...layer_namex:[datax]}
+        data_all = {}
 
-        # break into 100 per id chunk to avoid big data (1gb) of json
-
-        # we need to have a nested for loop from (parent loop) the dictionary (which layer is unique (key) and to for loop (nested) the data of each value)
-        for layer_name, data in self.items.items():
+        # iterate only unique layer_name,
+        for lyr_name in set(self.layer_names):
+            # reset to empty list of next unique lyr_name after if in nested loop below
+            each_layer_data = []
+            for i in range(len(self.layer_names)):
+                if lyr_name == self.layer_names[i]:
+                    each_layer_data += self.data[i]
+                    data_all[lyr_name] = each_layer_data
+        
+        for layer_name, data in data_all.items():
             chunk_size = 100 # absolute number
             list_chunk = []
             for i in range(0, len(data), chunk_size):
