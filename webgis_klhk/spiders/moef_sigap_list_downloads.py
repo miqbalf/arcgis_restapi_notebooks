@@ -7,11 +7,6 @@ from webgis_klhk.items import moefSigapKLHKItem
 
 link_name = ["/server/rest/services/SIGAP_Interaktif/Areal_Karhutla_Jan_Jun_2023/MapServer/0",
              "/server/rest/services/SIGAP_Interaktif/Areal_Kebakaran_Hutan_dan_Lahan_2022/MapServer/0",
-             "/server/rest/services/SIGAP_Interaktif/Arahan_Pemanfaaatan_PBPH/MapServer/0",
-             "/server/rest/services/SIGAP_Interaktif/Kawasan_Hutan_Dengan_Pengelolaan_Khusus/MapServer/0",
-             "/server/rest/services/SIGAP_Interaktif/Kawasan_Hutan_Dengan_Tujuan_Khusus/MapServer/0",
-             "/server/rest/services/SIGAP_Interaktif/Kesatuan_Hidrologis_Gambut/MapServer/0",
-             "/server/rest/services/SIGAP_Interaktif/Kesatuan_Pengelolaan_Hutan/MapServer/0"
 ]
 
 class moefSigapKLHK(scrapy.Spider):
@@ -95,7 +90,7 @@ class moefSigapKLHK(scrapy.Spider):
         layer_name_parts = layer_link_name.split('/')
         layer_name = layer_name_parts[-3]
 
-        output_dir = f'./output_json_{layer_name}'  # Define your output directory
+        output_dir = f'./output_json_local/SIGAP_collection/output_json_{layer_name}'  # Define your output directory
         os.makedirs(output_dir, exist_ok=True)
 
         data = json.loads(response.text)

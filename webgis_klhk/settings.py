@@ -21,7 +21,7 @@ ITEM_PIPELINES = {
 #USER_AGENT = "webgis_klhk (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 DOWNLOAD_FAIL_ON_DATALOSS = False
 
