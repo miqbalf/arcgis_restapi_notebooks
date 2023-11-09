@@ -61,6 +61,7 @@ class JsonExportPipeline:
 
         # init to reconstruct the dictionary, {layer_name1:[data1]...layer_namex:[datax]}
         data_all = {}
+        #print(self.data, "--------------------------------------------")
 
         # iterate only unique layer_name,
         for lyr_name in set(self.layer_names):
@@ -68,8 +69,10 @@ class JsonExportPipeline:
             each_layer_data = []
             for i in range(len(self.layer_names)):
                 if lyr_name == self.layer_names[i]:
-                    each_layer_data += self.data[i]
+                    each_layer_data.append(self.data[i])
                     data_all[lyr_name] = each_layer_data
+
+        #print(data_all)
         
         for layer_name, data in data_all.items():
             chunk_size = 100 # absolute number
