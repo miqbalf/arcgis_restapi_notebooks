@@ -6,9 +6,22 @@ import os
 from pathlib import Path
 
 # force to put variable in this root level
-# The path to the script's directory is combined with the JSON filename
-output_path = Path(__file__).parent # current dir
+#name project bbox, change this later if you change the filename json in input_json
+aoi_name = 'bbox_muna.json'
 
+
+# The path to the script's directory is combined with the JSON filename
+output_path = os.path.dirname(os.path.dirname(Path(__file__).parent)) # root dir
+
+aoi_input_folder = os.path.join(output_path,'input_json')
+aoi_input = os.path.join(aoi_input_folder, aoi_name)
+
+# CHANGE THIS PLEASE! or in the var above (name)
+# with open('./input_json/bbox_indo.json', 'r') as json_file:
+with open(aoi_input, 'r') as json_file:
+    dict_data = json.load(json_file)
+
+str_bbox = str(dict_data)
 
 class WebgisKlhkSpiderSpider(scrapy.Spider):
     name = "webgis_klhk_spider"
@@ -21,7 +34,24 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
             
             layer = link.css('a::attr(href)').extract()[0]
             page_url = 'https://geoportal.menlhk.go.id' + layer
-            yield scrapy.Request(page_url, callback=self.parse_individual_layer)
+
+            ### this one to iterate to all but exclude these layers
+            # excluded_data_toscrape = ['PL_1990', 'PL_1996', 'PL_2000', 'PL_2003', 'PL_2006', 
+            #                      'PL_2009','PL_2011', 'PL_2012', 'PL_2013', 'PL_2014', 
+            #                      'PL_2015'] # not sure why, but the MoF not publish the feature data of these
+            
+            # # Check if NONE of the excluded keywords are in the URL
+            # if not any(keyword in page_url for keyword in excluded_data_toscrape):
+            #     print('page_url:', page_url)
+            #     yield scrapy.Request(page_url, callback=self.parse_individual_layer)
+
+            ### this one to iterate ONLY these layers in included_data_toscrape
+            included_data_toscrape = ['PL_2023', 'PL_2024']
+            
+            # Check if NONE of the excluded keywords are in the URL
+            if any(keyword in page_url for keyword in included_data_toscrape):
+                print('page_url:', page_url)
+                yield scrapy.Request(page_url, callback=self.parse_individual_layer)
 
     
     def parse_individual_layer(self, response):
@@ -29,6 +59,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         # You can use response.xpath or response.css to extract data
         # For example:
         layer_link_name = response.css('ul li a::attr(href)').extract()[0]
+        print('layer_link_name: ',layer_link_name)
 
         page_url = 'https://geoportal.menlhk.go.id' + layer_link_name
         #print(f'Title: {title}')
@@ -49,13 +80,6 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         oid_name = response.meta.get('oid_name')
         layer_name = response.meta.get('layer_name')
         layer_link_name = layer_name
-        
-        # CHANGE THIS PLEASE!
-        # with open('./input_json/bbox_indo.json', 'r') as json_file:
-        with open('./input_json/bbox_muna.json', 'r') as json_file:
-            dict_data = json.load(json_file)
-
-        str_bbox = str(dict_data)
 
         params = {
                 "where": f"{oid_name} >= -1",
@@ -63,11 +87,9 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                 "objectIds": "",
                 "time": "",
                 "timeRelation": "esriTimeRelationOverlaps",
-                #"geometry": str_bbox,
-                "geometry": '', # this one, we will scrape all the data
+                "geometry": str_bbox,
                 "geometryType": "esriGeometryEnvelope",
-                #"inSR": 4326, 
-                'inSR': '', # no need to apply this, return '' to scrape without geometry
+                "inSR": '4326', 
                 "spatialRel": "esriSpatialRelIntersects",
                 "units": "esriSRUnit_Foot",
                 "outFields": "",
@@ -75,7 +97,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                 "returnTrueCurves": "false",
                 "maxAllowableOffset": "",
                 "geometryPrecision": "",
-                #"outSR": 4326,
+                "outSR": '4326',
                 "havingClause": "",
                 "returnIdsOnly": "true",
                 "returnCountOnly": "false",
@@ -106,10 +128,12 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
     def parse_query_post(self, response):
         layer_link_name = response.meta.get('layer_link_name')
 
+        # print(f'\n------- THIS IS THE LAYER LINK NAME CHECK PLEASE!! \n: {layer_link_name} -------- \n')
+
         layer_name_parts = layer_link_name.split('/')
         layer_name = layer_name_parts[-3]
 
-        output_dir = f'./json_raw/output_json_{layer_name}'  # Define your output directory
+        output_dir = os.path.join(output_path,f'json_raw/output_json_{layer_name}')  # Define your output directory
         os.makedirs(output_dir, exist_ok=True)
 
         data = json.loads(response.text)
@@ -119,6 +143,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                 
         # keep the loop, since previous result, missing first index, not sure why
         for key, value in dict_oid.items():
+            # print(f'\n------- THIS IS THE  VALUE QUERY  CHECK PLEASE!! \n: {value} -------- \n')
             list_oids = dict_oid[key]['objectIds']
             if list_oids is not None:
                 oid_name = dict_oid[key]['objectIdFieldName']
@@ -149,6 +174,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         # fix_dict = {}
         for key, value in dict_oid.items():
             if dict_oid[key].get('query') is not None:
+                # print(f'\n------- THIS IS THE  VALUE QUERY  CHECK PLEASE!! \n: {dict_oid[key].get("query")} -------- \n')
         #         a +=1
         #         print(a)
         #         print(key)
@@ -157,6 +183,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                 
                 a = 0
                 for q in dict_oid[key]['query']:
+                    # print(f'\n------- THIS IS THE  VALUE QUERY  CHECK PLEASE!! \n: {q} -------- \n') #debug mode
                     a += 1 # this one is producing interation batch download in file json
                     obj_ids_query = q
                     post_data  = { 'where': obj_ids_query,
@@ -164,9 +191,9 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                                 'objectIds': '',
                                 'time': '',
                                 'timeRelation': 'esriTimeRelationOverlaps',
-                                'geometry': '',
+                                'geometry': str_bbox,
                                 'geometryType': 'esriGeometryEnvelope',
-                                'inSR': '',
+                                'inSR': '4326',
                                 'spatialRel': 'esriSpatialRelIntersects',
                                 'distance': '',
                                 'units': 'esriSRUnit_Foot',
@@ -176,7 +203,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                                 'returnTrueCurves': 'false',
                                 'maxAllowableOffset': '',
                                 'geometryPrecision': '',
-                                'outSR': '',
+                                'outSR': '4326',
                                 'havingClause': '',
                                 'returnIdsOnly': 'false',
                                 'returnCountOnly': 'false',
@@ -200,6 +227,8 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                                 'f': 'geojson',
                             }
                     
+                    # print(post_data)
+                    
                     output_file_path = os.path.join(output_dir, f'{layer_name}_{a}.json')
 
                     post_url = 'https://geoportal.menlhk.go.id' + layer_link_name + '/query'
@@ -219,9 +248,14 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         output_file_name = response.meta.get('output_file_name')
         layer_link_name = response.meta.get('layer_link_name')
 
-        # Write the data to the JSON file
+        # Write the data to the JSON file from previous query above (get the geometry and other field)
         with open(output_file_path, 'w') as json_file:
             json.dump(json.loads(response.text), json_file)
+
+        # print('HERE IS THE RESULT: \n',json.loads(response.text))
+
+        dict_response = json.loads(response.text)
+        sample_first_row_geometry = dict_response.get('features',[{'geometry':None}])[0]['geometry'] # if the dict is not exist with feature, which means that it is equivalent to empty geometry
 
         fileSize = os.stat(output_file_path).st_size
         print (f"checking file size {output_file_path}, (error 500 or 400 indicator: if Filesize < 1kb): file size is --> {fileSize}")
@@ -230,7 +264,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         with open(f'{output_path}/json_raw/{layer_name}_input_id_query.json','r') as json_file:
             dict_oid_2 = json.load(json_file)
 
-        if fileSize < 100:
+        if fileSize < 100 or sample_first_row_geometry is None :
             print(f're-do the chunk 50 with {output_file_path}')
             print('get the number suffix _(i+1): therefore use -1 to apply index')
 
