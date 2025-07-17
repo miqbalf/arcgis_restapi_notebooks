@@ -270,27 +270,45 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
 
             #  get the _somenumber of i.e layer_name_somenumber.json
             suffix_iter = output_file_name.split('_')[-1].replace('.json','')
-            list_oids = dict_oid_2[layer_link_name]['chunk_oid'][int(suffix_iter)-1] # since index start from 0 but you added a+=1 at the top above in for loop
-
+            # list_oids = dict_oid_2[layer_link_name]['chunk_oid'][int(suffix_iter)-1] # since index start from 0 but you added a+=1 at the top above in for loop
+            list_oids = dict_oid_2[layer_link_name]['objectIds'] # REVISIT THIS LATER IF THERE IS KEY ERROR
+            
             if list_oids is not None:
-                oid_name = dict_oid_2[layer_link_name]['objectIdFieldName']
-                chunk_size = 50
-                print("initiating multiplier chunk " + str(chunk_size))
-                query_chunks = []
-                oid_chunk = []
-                for i in range(0, len(list_oids), chunk_size):
-                    chunk = list_oids[i:i + chunk_size]
-                    query = ' or '.join([f"{oid_name} = {str(oid)}" for oid in chunk])
-                    query_chunks.append(query)
-                    oid_chunk.append(chunk)
-                dict_oid_2[layer_link_name]['query'] = query_chunks
-                dict_oid_2[layer_link_name]['chunk_oid'] = oid_chunk
+                # oid_name = dict_oid_2[layer_link_name]['objectIdFieldName']
+                # chunk_size = 50
+                # print("initiating multiplier chunk " + str(chunk_size))
+                # query_chunks = []
+                # oid_chunk = []
+                # for i in range(0, len(list_oids), chunk_size):
+                #     chunk = list_oids[i:i + chunk_size]
+                #     query = ' or '.join([f"{oid_name} = {str(oid)}" for oid in chunk])
+                #     query_chunks.append(query)
+                #     oid_chunk.append(chunk)
+                # dict_oid_2[layer_link_name]['query'] = query_chunks
+                # dict_oid_2[layer_link_name]['chunk_oid'] = oid_chunk
+                # print(len(oid_chunk)) # should return =< 2 now
 
-                print(len(oid_chunk)) # should return =< 2 now
+                print('initiating the request for loop per OID')
 
                 # with open(f'Z:\\GIS_ArcGISPro\\jupyter_notebook\\webgis_klhk\\arcgis_restapi_notebooks\\{layer_name}_input_id_query_2.json','w') as json_file:
+                
                 with open(f'{output_path}\\json_raw\\{layer_name}_input_id_query_2.json','w') as json_file:
                     json.dump(dict_oid_2, json_file) # this one important to save and track back again later if error happening in the files (file_small) not acquiring features
+
+                ## NOW THE IMPLEMENTATION OF EACH FEATURE OID
+                for oid in list_oids:
+                    # 357481?f=pjson
+                    output_json_name = f'{layer_name}_oid_{oid}.json'
+                    output_file_path = os.path.join(output_dir, output_json_name)
+
+                    get_url = 'https://geoportal.menlhk.go.id' + layer_link_name + f'/{oid}?f=pjson'
+
+                    request = scrapy.FormRequest(url=get_url, callback=self.save_json_2, meta={'output_file_path': output_file_path,
+                                                                                                                'output_file_name':output_json_name,
+                                                                                                                'layer_name': layer_name})
+
+                    yield request
+
 
             elif list_oids is None:
                 # print(list_oids)
@@ -299,67 +317,67 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                 with open(output_file_path,'w') as json_file:
                     json.dump({'error_id_layer_2':layer_name}, json_file)
 
-            if dict_oid_2[layer_link_name].get('query') is not None:
-            #         a +=1
-            #         print(a)
-            #         print(key)
-                    # fix_dict[key] = value
-                    # Construct the output file path based on layer_name
+            # if dict_oid_2[layer_link_name].get('query') is not None:
+            # #         a +=1
+            # #         print(a)
+            # #         print(key)
+            #         # fix_dict[key] = value
+            #         # Construct the output file path based on layer_name
                     
-                a = 0
-                for q in dict_oid_2[layer_link_name]['query']:
-                    a += 1 # this one is producing interation batch download in file json
-                    obj_ids_query = q
-                    post_data  = { 'where': obj_ids_query,
-                                'text': '',
-                                'objectIds': '',
-                                'time': '',
-                                'timeRelation': 'esriTimeRelationOverlaps',
-                                'geometry': '',
-                                'geometryType': 'esriGeometryEnvelope',
-                                'inSR': '',
-                                'spatialRel': 'esriSpatialRelIntersects',
-                                'distance': '',
-                                'units': 'esriSRUnit_Foot',
-                                'relationParam': '',
-                                'outFields': '*',
-                                'returnGeometry': 'true',
-                                'returnTrueCurves': 'false',
-                                'maxAllowableOffset': '',
-                                'geometryPrecision': '',
-                                'outSR': '',
-                                'havingClause': '',
-                                'returnIdsOnly': 'false',
-                                'returnCountOnly': 'false',
-                                'orderByFields': '',
-                                'groupByFieldsForStatistics':  '',
-                                'outStatistics': '',
-                                'returnZ': 'false',
-                                'returnM': 'false',
-                                'gdbVersion': '',
-                                'historicMoment': '',
-                                'returnDistinctValues': 'false',
-                                'resultOffset': '',
-                                'resultRecordCount': '',
-                                'returnExtentOnly': 'false',
-                                'sqlFormat': 'none',
-                                'datumTransformation': '',
-                                'parameterValues': '',
-                                'rangeValues': '',
-                                'quantizationParameters': '',
-                                'featureEncoding': 'esriDefault',
-                                'f': 'geojson',
-                            }
+            #     a = 0
+            #     for q in dict_oid_2[layer_link_name]['query']:
+            #         a += 1 # this one is producing interation batch download in file json
+            #         obj_ids_query = q
+            #         post_data  = { 'where': obj_ids_query,
+            #                     'text': '',
+            #                     'objectIds': '',
+            #                     'time': '',
+            #                     'timeRelation': 'esriTimeRelationOverlaps',
+            #                     'geometry': '',
+            #                     'geometryType': 'esriGeometryEnvelope',
+            #                     'inSR': '',
+            #                     'spatialRel': 'esriSpatialRelIntersects',
+            #                     'distance': '',
+            #                     'units': 'esriSRUnit_Foot',
+            #                     'relationParam': '',
+            #                     'outFields': '*',
+            #                     'returnGeometry': 'true',
+            #                     'returnTrueCurves': 'false',
+            #                     'maxAllowableOffset': '',
+            #                     'geometryPrecision': '',
+            #                     'outSR': '',
+            #                     'havingClause': '',
+            #                     'returnIdsOnly': 'false',
+            #                     'returnCountOnly': 'false',
+            #                     'orderByFields': '',
+            #                     'groupByFieldsForStatistics':  '',
+            #                     'outStatistics': '',
+            #                     'returnZ': 'false',
+            #                     'returnM': 'false',
+            #                     'gdbVersion': '',
+            #                     'historicMoment': '',
+            #                     'returnDistinctValues': 'false',
+            #                     'resultOffset': '',
+            #                     'resultRecordCount': '',
+            #                     'returnExtentOnly': 'false',
+            #                     'sqlFormat': 'none',
+            #                     'datumTransformation': '',
+            #                     'parameterValues': '',
+            #                     'rangeValues': '',
+            #                     'quantizationParameters': '',
+            #                     'featureEncoding': 'esriDefault',
+            #                     'f': 'geojson',
+            #                 }
                     
-                    output_file_path = os.path.join(output_dir, f'{layer_name}_n50_{suffix_iter}_{a}.json') # nested 500 means, the data use chunk 500 instead 1000
+            #         output_file_path = os.path.join(output_dir, f'{layer_name}_n50_{suffix_iter}_{a}.json') # nested 500 means, the data use chunk 500 instead 1000
 
-                    post_url = 'https://geoportal.menlhk.go.id' + layer_link_name + '/query'
+            #         post_url = 'https://geoportal.menlhk.go.id' + layer_link_name + '/query'
 
-                    request = scrapy.FormRequest(url=post_url, formdata=post_data, callback=self.save_json_2, meta={'output_file_path': output_file_path,
-                                                                                                                'output_file_name':f'{layer_name}_n50_{suffix_iter}_{a}.json',
-                                                                                                                'layer_name': layer_name})
+            #         request = scrapy.FormRequest(url=post_url, formdata=post_data, callback=self.save_json_2, meta={'output_file_path': output_file_path,
+            #                                                                                                     'output_file_name':f'{layer_name}_n50_{suffix_iter}_{a}.json',
+            #                                                                                                     'layer_name': layer_name})
 
-                    yield request
+            #         yield request
 
         else:
             print(f'no error in file output feature {layer_name}')
