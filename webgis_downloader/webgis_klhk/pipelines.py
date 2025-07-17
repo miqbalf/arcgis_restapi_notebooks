@@ -83,7 +83,7 @@ class JsonExportPipeline:
 
             for i in range(len(list_chunk)):
                 # Construct the output file path
-                output_file_path = os.path.join(self.index_dir[layer_name], f'{layer_name}_{i}.json')
+                output_file_path = os.path.join(self.index_dir[layer_name],'json_raw', f'{layer_name}_{i}.json')
 
                 # Write the data to the JSON file
                 with open(output_file_path, 'w') as json_file:
@@ -95,7 +95,7 @@ class JsonExportPipeline:
 
             # try to still apply one geojson as big file
             # Construct the output file path and merge all of each layer_name
-            output_file_path = os.path.join(self.index_dir[layer_name], f'{layer_name}_geojson.json')
+            output_file_path = os.path.join(self.index_dir[layer_name], 'json_raw',f'{layer_name}_geojson.json')
             
             # Write the data to the JSON file
             with open(output_file_path, 'w') as json_file:

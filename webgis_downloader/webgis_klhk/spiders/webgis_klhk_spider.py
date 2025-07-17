@@ -3,6 +3,12 @@ from urllib.parse import urlencode
 import json
 import os
 
+from pathlib import Path
+
+# force to put variable in this root level
+# The path to the script's directory is combined with the JSON filename
+output_path = Path(__file__).parent # current dir
+
 
 class WebgisKlhkSpiderSpider(scrapy.Spider):
     name = "webgis_klhk_spider"
@@ -43,8 +49,10 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         oid_name = response.meta.get('oid_name')
         layer_name = response.meta.get('layer_name')
         layer_link_name = layer_name
-        with open('./input_json/bbox_indo.json', 'r') as json_file:
-        # with open('./input_json/bbox.json', 'r') as json_file:
+        
+        # CHANGE THIS PLEASE!
+        # with open('./input_json/bbox_indo.json', 'r') as json_file:
+        with open('./input_json/bbox_muna.json', 'r') as json_file:
             dict_data = json.load(json_file)
 
         str_bbox = str(dict_data)
@@ -101,7 +109,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         layer_name_parts = layer_link_name.split('/')
         layer_name = layer_name_parts[-3]
 
-        output_dir = f'./output_json_{layer_name}'  # Define your output directory
+        output_dir = f'./json_raw/output_json_{layer_name}'  # Define your output directory
         os.makedirs(output_dir, exist_ok=True)
 
         data = json.loads(response.text)
@@ -128,7 +136,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
 
                 print(len(oid_chunk),'-----------------')
 
-                with open(f'./{layer_name}_input_id_query.json','w') as json_file:
+                with open(f'./json_raw/{layer_name}_input_id_query.json','w') as json_file:
                     json.dump(dict_oid, json_file) # this one important to save and track back again later if error happening in the files (file_small) not acquiring features
 
             elif list_oids is None:
@@ -218,7 +226,8 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         fileSize = os.stat(output_file_path).st_size
         print (f"checking file size {output_file_path}, (error 500 or 400 indicator: if Filesize < 1kb): file size is --> {fileSize}")
 
-        with open(f'Z:\\GIS_ArcGISPro\\jupyter_notebook\\webgis_klhk\\arcgis_restapi_notebooks\\{layer_name}_input_id_query.json','r') as json_file:
+        # with open(f'Z:\\GIS_ArcGISPro\\jupyter_notebook\\webgis_klhk\\arcgis_restapi_notebooks\\{layer_name}_input_id_query.json','r') as json_file:
+        with open(f'{output_path}/json_raw/{layer_name}_input_id_query.json','r') as json_file:
             dict_oid_2 = json.load(json_file)
 
         if fileSize < 100:
@@ -245,7 +254,8 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
 
                 print(len(oid_chunk)) # should return =< 2 now
 
-                with open(f'Z:\\GIS_ArcGISPro\\jupyter_notebook\\webgis_klhk\\arcgis_restapi_notebooks\\{layer_name}_input_id_query_2.json','w') as json_file:
+                # with open(f'Z:\\GIS_ArcGISPro\\jupyter_notebook\\webgis_klhk\\arcgis_restapi_notebooks\\{layer_name}_input_id_query_2.json','w') as json_file:
+                with open(f'{output_path}\\json_raw\\{layer_name}_input_id_query_2.json','w') as json_file:
                     json.dump(dict_oid_2, json_file) # this one important to save and track back again later if error happening in the files (file_small) not acquiring features
 
             elif list_oids is None:

@@ -8,3 +8,6 @@ conda install qgis --channel conda-forge
 mklink /D "C:\Program Files\ArcGIS\Pro\bin\Python\envs\qgis_env" "C:\Users\q_bal\AppData\Local\ESRI\conda\envs\qgis_env"
 
 mklink /D "C:\Program Files\ArcGIS\Pro\bin\Python\envs\mrv" "C:\Users\q_bal\AppData\Local\ESRI\conda\envs\mrv"
+
+# using in parallel from win to mac
+pushd \\Mac\Home\Documents\arcgis_restapi_notebooks\webgis_downloader
