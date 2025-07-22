@@ -61,23 +61,29 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         layer_link_name = response.css('ul li a::attr(href)').extract()[0]
         print('layer_link_name: ',layer_link_name)
 
-        page_url = 'https://geoportal.menlhk.go.id' + layer_link_name
+        page_url = 'https://geoportal.menlhk.go.id' + layer_link_name + '/?f=pjson'
         #print(f'Title: {title}')
         # yield {'link': layer_link_name}
         yield scrapy.Request(page_url, callback=self.parse_objectid, meta={'layer_name': layer_link_name})
 
     def parse_objectid(self, response):
         # get xpath name objectid_name for queries
-        objectid_name = response.xpath('/html/body/div/ul[4]/li[1]/text()').get().strip().replace('\r\n', '')
+        # objectid_name = response.xpath('/html/body/div/ul[4]/li[1]/text()').get().strip().replace('\r\n', '') let's use the json instead
+        json_result_meta = json.loads(response.text)
+        type_feature = json_result_meta.get('geometryType')
+
+        objectid_name = [field.get('name') for field in json_result_meta.get('fields') if field.get('type') == 'esriFieldTypeOID'][0]
+
         # print(f'Title: {objectid_name}')
         layer_name = response.meta.get('layer_name')
         # yield {layer_name: objectid_name}
         page_url = 'https://geoportal.menlhk.go.id' + layer_name + '/query'
         
-        yield scrapy.Request(page_url, callback = self.parse_query, meta={'oid_name' :objectid_name, 'layer_name': layer_name })
+        yield scrapy.Request(page_url, callback = self.parse_query, meta={'oid_name' :objectid_name, 'layer_name': layer_name, 'type_feature':type_feature })
 
     def parse_query(self, response):
         oid_name = response.meta.get('oid_name')
+        type_feature = response.meta.get('type_feature')
         layer_name = response.meta.get('layer_name')
         layer_link_name = layer_name
 
@@ -123,9 +129,10 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         
         page_url = 'https://geoportal.menlhk.go.id' + layer_link_name + '/query?' + urlencode(params)
 
-        yield scrapy.Request(page_url, self.parse_query_post, meta={'layer_link_name':layer_link_name})
+        yield scrapy.Request(page_url, self.parse_query_post, meta={'layer_link_name':layer_link_name, 'type_feature':type_feature })
 
     def parse_query_post(self, response):
+        type_feature = response.meta.get('type_feature')
         layer_link_name = response.meta.get('layer_link_name')
 
         # print(f'\n------- THIS IS THE LAYER LINK NAME CHECK PLEASE!! \n: {layer_link_name} -------- \n')
@@ -137,6 +144,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         os.makedirs(output_dir, exist_ok=True)
 
         data = json.loads(response.text)
+        # print(data)
 
         dict_oid = {layer_link_name: data}
         # print(dict_oid)
@@ -224,7 +232,7 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                                 'rangeValues': '',
                                 'quantizationParameters': '',
                                 'featureEncoding': 'esriDefault',
-                                'f': 'geojson',
+                                'f': 'pjson', # change this into pjson, instead of geojson, to extract field information later, if this one failed (geometry)
                             }
                     
                     # print(post_data)
@@ -237,7 +245,8 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
                                                                                                               'output_file_name':f'{layer_name}_{a}.json',
                                                                                                               'layer_name': layer_name,
                                                                                                               'layer_link_name':layer_link_name,
-                                                                                                              'output_dir': output_dir})
+                                                                                                              'output_dir': output_dir,
+                                                                                                              'type_feature': type_feature})
 
                     yield request
 
@@ -248,6 +257,8 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         output_file_name = response.meta.get('output_file_name')
         layer_link_name = response.meta.get('layer_link_name')
 
+        type_feature = response.meta.get('type_feature')
+
         # Write the data to the JSON file from previous query above (get the geometry and other field)
         with open(output_file_path, 'w') as json_file:
             json.dump(json.loads(response.text), json_file)
@@ -255,7 +266,9 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
         # print('HERE IS THE RESULT: \n',json.loads(response.text))
 
         dict_response = json.loads(response.text)
-        sample_first_row_geometry = dict_response.get('features',[{'geometry':None}])[0]['geometry'] # if the dict is not exist with feature, which means that it is equivalent to empty geometry
+        sample_first_row_geometry = dict_response.get('features',[{'geometry':None}])[0].get('geometry',None) # if the dict is not exist with feature, which means that it is equivalent to empty geometry
+
+        fields = dict_response.get('fields')
 
         fileSize = os.stat(output_file_path).st_size
         print (f"checking file size {output_file_path}, (error 500 or 400 indicator: if Filesize < 1kb): file size is --> {fileSize}")
@@ -305,7 +318,10 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
 
                     request = scrapy.FormRequest(url=get_url, callback=self.save_json_2, meta={'output_file_path': output_file_path,
                                                                                                                 'output_file_name':output_json_name,
-                                                                                                                'layer_name': layer_name})
+                                                                                                                'layer_name': layer_name,
+                                                                                                                'fields_list': fields,
+                                                                                                                'type_feature': type_feature
+                                                                                                                })
 
                     yield request
 
@@ -385,10 +401,37 @@ class WebgisKlhkSpiderSpider(scrapy.Spider):
     def save_json_2(self, response):
         
         output_file_path = response.meta.get('output_file_path')
+        fields_list = response.meta.get('fields_list')
+
+        type_feature = response.meta.get('type_feature')
+
+        output_response = json.loads(response.text)
+
+        esri_standard_json = {}
+
+        esri_standard_json_feature = output_response.get('feature',{})
+        esri_standard_json["spatialReference"] =  {
+                                                        "wkid": 4326
+                                                  }
+        # type_feature = 'esriGeometryPoint'
+        # if 'rings' in esri_standard_json_feature.get('geometry').keys():
+        #     type_feature = 'esriGeometryPolygon'
+        
+        esri_standard_json['geometryType'] = type_feature
+        esri_standard_json['fields'] = fields_list
+        esri_standard_json['features'] = [esri_standard_json_feature]
+
+        
+
+        
+        
+
+        
+        
 
         # Write the data to the JSON file
         with open(output_file_path, 'w') as json_file:
-            json.dump(json.loads(response.text), json_file)
+            json.dump(esri_standard_json, json_file)
             
 
 
